@@ -9,6 +9,8 @@
 #define BID 3
 #define VEL_MS 7
 
+sem_t writeSem;
+
 void stvoriUlazneDretve();
 void stvoriRadneDretve();
 void stvoriIzlazneDretve();
@@ -20,7 +22,13 @@ void fillMS();
 void printUMS();
 void printIMS();
 
+void init() {
+    sem_init(&writeSem, 0, 1);
+}
+
 int main() {
+    init();
+
     stvoriUlazneDretve();
 
     return 0;
@@ -63,28 +71,31 @@ int dohvatiUlaz(int id) {
     return 'A' + rand() % 26;
 }
 
-int obradiUlaz(int ulaz) {
-    return (ulaz + getpid()) % BRD;
+int obradiUlaz(int id, int ulaz) {
+    return (ulaz + id) % BRD;
 }
 
 void *ulaz(void * threadId) {
     char UMS[BRD][VEL_MS];
     char IMS[BID][VEL_MS];
-    int id = (int) threadId;
+    const int id = (int) threadId;
 
     fillMS(UMS, IMS);
     stvoriRadneDretve();
-    stvoriIzlazneDretve();
 
     while (1) {
-        int U = dohvatiUlaz(id);
-        int T = obradiUlaz(U);
+        const int U = dohvatiUlaz(id);
+        const int T = obradiUlaz(id, U);
 
+        //K.O.
+        sem_wait(&writeSem);
         UMS[T][0] = U;
         printf("U%d: dohvatiUlaz(%d) => '%c', obradiUlaz(%c) => %d\n", id, id, U, U, T);
         printUMS(UMS);
         printIMS(IMS);
         printf("\n");
+        sem_post(&writeSem);
+        //Kraj K.O.
 
         sleep(5);
     }
@@ -101,6 +112,7 @@ void *izlaz(void * threadId) {
 
 void stvoriUlazneDretve() {
     pthread_t threads[BUD];
+
     for (int i = 0; i < BUD; i++) {
         pthread_t ulaznaDretva;
         pthread_create(&ulaznaDretva, NULL, ulaz, i);
@@ -113,15 +125,29 @@ void stvoriUlazneDretve() {
 }
 
 void stvoriRadneDretve() {
+    pthread_t threads[BRD];
+
     for (int i = 0; i < BRD; i++) {
         pthread_t radnaDretva;
         pthread_create(&radnaDretva, NULL, rad, i);
+        threads[i] = radnaDretva;
+    }
+
+    for (int i = 0; i < BRD; i++) {
+        pthread_join(threads[i], NULL);
     }
 }
 
 void stvoriIzlazneDretve() {
+    pthread_t threads[BID];
+
     for (int i = 0; i < BID; i++) {
         pthread_t izlaznaDretva;
         pthread_create(&izlaznaDretva, NULL, izlaz, i);
+        threads[i] = izlaznaDretva;
+    }
+
+    for (int i = 0; i < BID; i++) {
+        pthread_join(threads[i], NULL);
     }
 }

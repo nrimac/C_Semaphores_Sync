@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/niko/Desktop/Labos_3/cmake-build-debug",
-		"source" : "/home/niko/Desktop/Labos_3"
+		"build" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3/cmake-build-debug",
+		"source" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3"
 	},
 	"version" : 
 	{

@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/niko/Desktop/Labos_3/cmake-build-debug"
+			"value" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -415,7 +415,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/niko/Desktop/Labos_3/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -475,7 +475,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/niko/Desktop/Labos_3"
+			"value" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1023,7 +1023,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/niko/Desktop/Labos_3/cmake-build-debug"
+			"value" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3/cmake-build-debug"
 		},
 		{
 			"name" : "Labos_3_IS_TOP_LEVEL",
@@ -1047,7 +1047,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/niko/Desktop/Labos_3"
+			"value" : "/home/niko/Desktop/C_Semaphores_Sync/Labos_3"
 		},
 		{
 			"name" : "_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED",
