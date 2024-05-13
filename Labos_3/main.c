@@ -19,6 +19,7 @@ int ulazIMS[BID];
 pthread_t threads[BUD + BRD + BID];
 sem_t writeSem;
 sem_t readUMSSem[BRD];
+sem_t readIMSSem[BID];
 
 //initialize threads
 void stvoriUlazneDretve();
@@ -42,6 +43,10 @@ void init() {
 
     for (int i = 0; i < BRD; i++) {
         sem_init(&readUMSSem[i], 0, 0);
+    }
+
+    for (int i = 0; i < BID; i++) {
+        sem_init(&readIMSSem[i], 0, 0);
     }
 }
 
@@ -163,13 +168,37 @@ void *rad(void * threadId) {
 
         sleep(1);
 
+        sem_post(&readIMSSem[t]);
         sem_post(&writeSem);
         //Kraj K.O.
     }
 }
 
 void *izlaz(void * threadId) {
+    const int id = (int) threadId;
 
+    int izlaz[BID];
+
+    while (1) {
+
+        //K.O.
+        sem_wait(&readIMSSem[id]);
+        sem_wait(&writeSem);
+
+        const int data = IMS[id][izlaz[id]];
+        IMS[id][izlaz[id]] = '-';
+        izlaz[id] = (izlaz[id] + 1) % VEL_MS;
+
+        printf("I%d: ispisujem IMS[%d] => '%c'\n", id, id, data);
+        printUMS();
+        printIMS();
+        printf("\n");
+
+        sleep(1);
+
+        sem_post(&writeSem);
+        //Kraj K.O.
+    }
 }
 
 void stvoriUlazneDretve() {
