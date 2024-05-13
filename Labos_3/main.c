@@ -5,12 +5,16 @@
 #include <unistd.h>
 
 #define BUD 1
-#define BRD 2
+#define BRD 5
 #define BID 3
 #define VEL_MS 5
 
 char UMS[BRD][VEL_MS];
 char IMS[BID][VEL_MS];
+
+int ulazUMS[BRD];
+int ulazIMS[BID];
+
 
 pthread_t threads[BUD + BRD + BID];
 sem_t writeSem;
@@ -24,7 +28,7 @@ void stvoriIzlazneDretve();
 //thread functions
 int dohvatiUlaz();
 int obradiUlaz();
-void obradi(int id, int podatak, int* r, int* t);
+void obradi(int podatak, int* r);
 
 //helper functions
 void fillMS();
@@ -33,6 +37,7 @@ void printIMS();
 
 void init() {
     fillMS();
+
     sem_init(&writeSem, 0, 1);
 
     for (int i = 0; i < BRD; i++) {
@@ -95,14 +100,13 @@ int obradiUlaz(const int id, const int ulaz) {
     return (ulaz + id) % BRD;
 }
 
-void obradi(const int id, const int podatak, int* r, int* t) {
-    *r = podatak + 32;
+void obradi(const int podatak, int* r) {
+    *r = podatak + ('a' - 'A');
 }
 
 void *ulaz(void * threadId) {
     const int id = (int) threadId;
 
-    int ulaz[BRD];
 
     while (1) {
         //K.O.
@@ -110,15 +114,15 @@ void *ulaz(void * threadId) {
         const int U = dohvatiUlaz(id);
         const int T = obradiUlaz(id, U);
 
-        UMS[T][ulaz[T]] = U;
-        ulaz[T] = (ulaz[T] + 1) % VEL_MS;
-        sem_post(&readUMSSem[T]);
-
+        UMS[T][ulazUMS[T]] = U;
+        ulazUMS[T] = (ulazUMS[T] + 1) % VEL_MS;
 
         printf("U%d: dohvatiUlaz(%d) => '%c', obradiUlaz(%c) => %d\n", id, id, U, U, T);
         printUMS();
         printIMS();
         printf("\n");
+
+        sem_post(&readUMSSem[T]);
         sem_post(&writeSem);
         //Kraj K.O.
 
@@ -127,24 +131,38 @@ void *ulaz(void * threadId) {
 }
 
 void *rad(void * threadId) {
-    int izlaz[BRD];
     const int id = (int) threadId;
 
+    int izlaz[BRD];
+
+    //sleep prije prvog citanja
+    sleep(10);
+
     while (1) {
+
         //K.O.
         sem_wait(&readUMSSem[id]);
-        const int P = UMS[id][izlaz[id]];
-        UMS[id][izlaz[id]] = "-";
-        izlaz[id] = (izlaz[id] + 1) % VEL_MS;
-        //obradi podatak
-        int r, t;
-        obradi(id, P, &r, &t);
-
         sem_wait(&writeSem);
-        printf("R%d: UMS[%d][%d] => '%c'\n", id, id, izlaz[id], P);
+
+        const int P = UMS[id][izlaz[id]];
+        UMS[id][izlaz[id]] = '-';
+        izlaz[id] = (izlaz[id] + 1) % VEL_MS;
+
+        //obradi podatak
+        int r;
+        obradi(P, &r);
+        const int t = (r + id) % BID;
+
+        IMS[t][ulazIMS[t]] = r;
+        ulazIMS[t] = (ulazIMS[t] + 1) % VEL_MS;
+
+        printf("R%d: obradjujem UMS[%d] => '%c'\n", id, id, P);
         printUMS();
         printIMS();
         printf("\n");
+
+        sleep(1);
+
         sem_post(&writeSem);
         //Kraj K.O.
     }
