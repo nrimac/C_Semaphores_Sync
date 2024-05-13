@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BUD 1
-#define BRD 5
-#define BID 3
+#define BUD 6
+#define BRD 3
+#define BID 4
 #define VEL_MS 5
 
 char UMS[BRD][VEL_MS];
@@ -15,6 +15,7 @@ char IMS[BID][VEL_MS];
 int ulazUMS[BRD];
 int ulazIMS[BID];
 
+int last_data[BID];
 
 pthread_t threads[BUD + BRD + BID];
 sem_t writeSem;
@@ -112,7 +113,6 @@ void obradi(const int podatak, int* r) {
 void *ulaz(void * threadId) {
     const int id = (int) threadId;
 
-
     while (1) {
         //K.O.
         sem_wait(&writeSem);
@@ -127,11 +127,13 @@ void *ulaz(void * threadId) {
         printIMS();
         printf("\n");
 
+        sleep(1);
+
         sem_post(&readUMSSem[T]);
         sem_post(&writeSem);
         //Kraj K.O.
 
-        sleep(1);
+        sleep(3);
     }
 }
 
@@ -141,7 +143,7 @@ void *rad(void * threadId) {
     int izlaz[BRD];
 
     //sleep prije prvog citanja
-    sleep(10);
+    sleep(5);
 
     while (1) {
 
@@ -171,6 +173,8 @@ void *rad(void * threadId) {
         sem_post(&readIMSSem[t]);
         sem_post(&writeSem);
         //Kraj K.O.
+
+        sleep(3);
     }
 }
 
@@ -179,25 +183,34 @@ void *izlaz(void * threadId) {
 
     int izlaz[BID];
 
-    while (1) {
+    sem_wait(&readIMSSem[id]);
 
+    while (1) {
         //K.O.
-        sem_wait(&readIMSSem[id]);
         sem_wait(&writeSem);
 
         const int data = IMS[id][izlaz[id]];
-        IMS[id][izlaz[id]] = '-';
-        izlaz[id] = (izlaz[id] + 1) % VEL_MS;
+        if (data != '-') {
+            last_data[id] = data;
+            IMS[id][izlaz[id]] = '-';
+            izlaz[id] = (izlaz[id] + 1) % VEL_MS;
 
-        printf("I%d: ispisujem IMS[%d] => '%c'\n", id, id, data);
-        printUMS();
-        printIMS();
+            printf("I%d: ispisujem IMS[%d] => '%c'\n", id, id, last_data[id]);
+            printUMS();
+            printIMS();
+        } else {
+            printf("I%d: ispisujem zadnji poznati poznati podatak => %c\n", id, last_data[id]);
+        }
+
+
         printf("\n");
 
         sleep(1);
 
         sem_post(&writeSem);
         //Kraj K.O.
+
+        sleep(3);
     }
 }
 
